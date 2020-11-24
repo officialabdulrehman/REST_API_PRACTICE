@@ -7,6 +7,7 @@ const uuidv4 = require('uuid')
 
 const sensitive = require('./sensitive')
 const feedRoutes = require('./routes/feed');
+const authRoutes = require('./routes/auth');
 
 const app = express()
 
@@ -45,11 +46,12 @@ app.use((req, res, next) => {
 })
 
 app.use('/feed', feedRoutes)
+app.use('/auth', authRoutes)
 
 app.use((err, req, res, next) => {
   console.log(err)
-  const { statusCode, message } = err
-  res.status(statusCode || 500).json({ message: message })
+  const { statusCode, message, data } = err
+  res.status(statusCode || 500).json({ message: message, data: data })
 })
 
 mongoose.connect(sensitive.MONGODB_URI)
