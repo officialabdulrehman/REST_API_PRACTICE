@@ -3,8 +3,10 @@ const path = require('path')
 
 const { validationResult } = require('express-validator/check')
 
+const io = require('../socket')
 const Post = require('../models/post');
 const User = require('../models/user');
+const user = require('../models/user');
 
 exports.getPosts = async(req, res, next) => {
   const currentPage = req.query.page || 1;
@@ -59,6 +61,7 @@ exports.createPost = (req, res, next) => {
       return user.save();
     })
     .then(result => {
+      io.getIO().emit('posts', {action: 'create', post: {...post._doc, creator: {_id: req.userId, name: user.name}}})
       res.status(201).json({
         message: 'Post created successfully!',
         post: post,
@@ -116,14 +119,14 @@ exports.updatePost = (req, res, next) => {
     throw error
   }
 
-  Post.findById(postId)
+  Post.findById(postId).populate('creator')
     .then(post => {
       if(!post){
         const error = new Error('Validation failed')
         error.statusCode = 422
         throw error
       }
-      if(post.creator.toString() !== req.userId){
+      if(post.creator._id.toString() !== req.userId){
         const error = new Error('Post not found')
         error.statusCode = 403
         throw error
@@ -137,6 +140,7 @@ exports.updatePost = (req, res, next) => {
       return post.save()
     })
     .then(result => {
+      io.getIO().emit('posts', {action: 'update', post: result})
       res.status(200).json({
         message: 'Post updated',
         post: result
