@@ -6,7 +6,7 @@ const { validationResult } = require('express-validator/check')
 const io = require('../socket')
 const Post = require('../models/post');
 const User = require('../models/user');
-const user = require('../models/user');
+//const user = require('../models/user');
 
 exports.getPosts = async(req, res, next) => {
   const currentPage = req.query.page || 1;
